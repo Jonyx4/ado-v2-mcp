@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "adoV2": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env.mcp"
+    }
+  }
+}
