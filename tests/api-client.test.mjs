@@ -18,6 +18,19 @@ test('client uses only the fixed adov2 activity endpoint and binds service plus 
   assert.deepEqual(JSON.parse(request.options.body), { kind: 'acks', days: 30, state: 'all' });
 });
 
+test('client keeps a single-segment API base path and rejects nested or query paths', async () => {
+  let url;
+  const api = createApiClient({ ...env, ADO_V2_API_ORIGIN: 'http://127.0.0.1:3100/v2' }, async (target) => {
+    url = target;
+    return new Response(JSON.stringify({ items: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  });
+  await api.getMyActivity({ kind: 'calls', days: 7, state: 'all' });
+  assert.equal(url, 'http://127.0.0.1:3100/v2/api/mcp/activity');
+  for (const value of ['http://localhost:3100/v2/x', 'http://localhost:3100/v2?x=1']) {
+    assert.throws(() => createApiClient({ ...env, ADO_V2_API_ORIGIN: value }), { message: 'API_ORIGIN_INVALID' });
+  }
+});
+
 test('client rejects insecure non-local origins, missing tokens and API error details', async () => {
   assert.throws(() => createApiClient({ ...env, ADO_V2_API_ORIGIN: 'http://example.invalid' }), { message: 'API_ORIGIN_INVALID' });
   const missing = createApiClient({ ADO_V2_API_ORIGIN: env.ADO_V2_API_ORIGIN });

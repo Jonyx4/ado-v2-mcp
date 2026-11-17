@@ -19,8 +19,9 @@ function apiOrigin(value: string | undefined) {
   let parsed: URL;
   try { parsed = new URL(value); } catch { throw new ApiClientError("API_ORIGIN_INVALID"); }
   const local = parsed.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
-  if ((!local && parsed.protocol !== "https:") || parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash) throw new ApiClientError("API_ORIGIN_INVALID");
-  return parsed.origin;
+  const prefix = parsed.pathname.replace(/\/$/, "");
+  if ((!local && parsed.protocol !== "https:") || parsed.username || parsed.password || !/^(\/[a-z0-9-]+)?$/.test(prefix) || parsed.search || parsed.hash) throw new ApiClientError("API_ORIGIN_INVALID");
+  return `${parsed.origin}${prefix}`;
 }
 
 export function createApiClient(env: NodeJS.ProcessEnv = process.env, fetcher: Fetcher = fetch) {
